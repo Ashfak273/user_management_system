@@ -1,21 +1,63 @@
+"""
+    User Service
+
+    This module contains the UserService class for handling user related operations.
+
+    Author
+    ----------
+    name: Ashfak Ahamed
+    email: mzashfak@gmail.com
+
+    Developers
+    ----------
+    - name: Ashfak Ahamed
+    email: mzashfak@gmail.com
+
+"""
 import re
 from datetime import datetime
-
 from passlib.context import CryptContext
 
 from app.model.user_model import UserRegister, UserLogin, UserUpdate, UserDelete, AuthResponse
 from app.repository.user_repository import UserRepository
 from app.entity.user_entity import User
-from app.service.http_service import logger
 from app.model.generic_response import GenericResponse
 from app.util.auth import create_access_token, get_current_user
+from app.config.logging_config import get_logger
+
+logger = get_logger(class_name=__name__)
 
 
 class UserService:
+    """
+    UserService Class
+
+    This class is used to handle user related operations such as registration, authentication, getting user by token,
+    updating user, and deleting user.
+
+    Attributes:
+    ----------
+    pwd_context : CryptContext
+        The password context for hashing passwords
+    """
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     @classmethod
     def register_user(cls, user: UserRegister, db):
+        """
+        Register a new user.
+
+        Parameters:
+        ----------
+        user : UserRegister
+            The user registration data
+        db : db_dependency
+            The database dependency
+
+        Returns:
+        ----------
+        The result of the user registration
+        """
         try:
             logger.info("User Registration Started")
             user_in_db = UserRepository.get_user_by_username(db, user.username)
@@ -44,6 +86,20 @@ class UserService:
 
     @classmethod
     def authenticate_user(cls, user_login: UserLogin, db):
+        """
+        Authenticate a user.
+
+        Parameters:
+        ----------
+        user_login : UserLogin
+            The user login data
+        db : db_dependency
+            The database dependency
+
+        Returns:
+        ----------
+        The result of the user authentication
+        """
         try:
             logger.info("User Authentication Started")
             user = UserRepository.get_user_by_username(db, user_login.username)
@@ -62,6 +118,20 @@ class UserService:
 
     @classmethod
     def get_user_by_token(cls, token, db):
+        """
+        Get the user by token.
+
+        Parameters:
+        ----------
+        token : str
+            The token of the user
+        db : db_dependency
+            The database dependency
+
+        Returns:
+        ----------
+        The user associated with the token
+        """
         try:
             logger.info("Get User By Token Started")
             user, _ = get_current_user(token, db)
@@ -80,6 +150,22 @@ class UserService:
 
     @classmethod
     def update_user(cls, token, db, user_update: UserUpdate):
+        """
+        Update a user.
+
+        Parameters:
+        ----------
+        token : str
+            The token of the user
+        db : db_dependency
+            The database dependency
+        user_update : UserUpdate
+            The user update data
+
+        Returns:
+        ----------
+        The result of the user update
+        """
         try:
             logger.info("Update User Started")
             user, _ = get_current_user(token, db)
@@ -107,6 +193,22 @@ class UserService:
 
     @classmethod
     def delete_user(cls, token, db, user_delete: UserDelete):
+        """
+        Delete a user.
+
+        Parameters:
+        ----------
+        token : str
+            The token of the user
+        db : db_dependency
+            The database dependency
+        user_delete : UserDelete
+            The user delete data
+
+        Returns:
+        ----------
+        The result of the user deletion
+        """
         try:
             logger.info("Delete User Started")
             user, user_id = get_current_user(token, db)

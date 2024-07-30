@@ -1,15 +1,18 @@
 # user_management_system
+![Python](https://img.shields.io/badge/-Python-3776AB?style=flat-square&logo=Python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat-square&logo=FastAPI&logoColor=white)
+
 This is a simple user management system that allows you to add, delete, and update users.
 It is built using Python and Flask.
 
 ## Folder Structure
 ```commandline
 app
-│   config
+│     config
 │   │   config.py
 │   │   database_config.py
 │   │   logging_config.py
-    controller
+│    controller
 │   │   __init__.py
 │   │   user_controller.py
 │   entity
@@ -64,6 +67,7 @@ pip install sqlalchemy
 pip install pymysql
 pip install requests
 pip install "passlib[bcrypt]"
+pip install --upgrade bcrypt==4.0.1
 pip install pyJWT
 
 ```
