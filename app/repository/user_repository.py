@@ -24,7 +24,7 @@ class UserRepository:
             raise DbOperationException(str(e), e)
 
     @staticmethod
-    def get_user_by_id(db: Session, user_id:int):
+    def get_user_by_id(db: Session, user_id: int):
         try:
             return db.query(User).filter(User.id == user_id).first()
         except Exception as e:

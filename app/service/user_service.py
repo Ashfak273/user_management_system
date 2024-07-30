@@ -63,9 +63,7 @@ class UserService:
         try:
             logger.info("Get User By Token Started")
             payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
-            print("payload", payload)
             user_id = payload.get("sub")
-            print("user_id", user_id)
             if not user_id:
                 logger.info("Invalid Token")
                 return GenericResponse.failed(message="Invalid Token", results=[])
