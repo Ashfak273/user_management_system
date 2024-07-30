@@ -1,0 +1,8 @@
+fastapi
+passlib
+pydantic
+PyJWT
+python-dotenv
+SQLAlchemy
+starlette
+uvicorn
