@@ -3,9 +3,10 @@ import sys
 
 from app.config.config import LOG_LEVEL
 
+#  defines the layout of log messages.
 FORMAT = '%(asctime)s %(name)s:%(lineno)s -> (%(levelname)s)  %(message)s'
 
-logging.getLogger("urllib3").setLevel(logging.DEBUG)
+logging.getLogger("urllib3").setLevel(logging.DEBUG)  # all debug  messages from urllib3 will be handled.
 
 
 def get_logger(class_name):

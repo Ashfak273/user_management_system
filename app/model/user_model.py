@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 
 
 class UserRegister(BaseModel):
@@ -12,15 +13,17 @@ class UserLogin(BaseModel):
     password: str
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+class AuthResponse(BaseModel):
+    access_token: Optional[str] = Field(None)
+    token_type: Optional[str] = Field(None)
+    success: bool = Field(...)
+    message: Optional[str] = Field(None)
 
 
 class UserUpdate(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
+    username: Optional[str] = Field(None)
+    email: Optional[str] = Field(None)
+    password: Optional[str] = Field(None)
 
 
 class UserDelete(BaseModel):
