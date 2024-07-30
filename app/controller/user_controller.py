@@ -1,11 +1,12 @@
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
 from app.model.user_model import UserRegister, UserLogin, Token, UserUpdate, UserDelete
 from app.config.database_config import db_dependency
 from app.service.user_service import UserService
-from fastapi.security import OAuth2PasswordBearer
-from fastapi.security import OAuth2PasswordRequestForm
+
 
 router = APIRouter(
     prefix="/v1/api/users",
@@ -14,11 +15,6 @@ router = APIRouter(
 
 user_service = UserService()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/api/users/login")
-
-
-@router.get("/")
-def read_root():
-    return {"Hello World": "User Management System"}
 
 
 @router.post("/register")

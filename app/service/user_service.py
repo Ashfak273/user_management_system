@@ -1,34 +1,31 @@
-import os
-
 from passlib.context import CryptContext
+
 from app.model.user_model import UserRegister, UserLogin, UserUpdate, UserDelete
 from app.repository.user_repository import UserRepository
 from app.entity.user_entity import User
 from app.service.http_service import logger
 from app.model.generic_response import GenericResponse
-from dotenv import load_dotenv
 from app.model.user_model import Token
-
-import jwt
-from datetime import datetime, timedelta, timezone
+from app.util.auth import create_access_token, get_current_user
 
 
 class UserService:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    load_dotenv('.env')
-    secret_key = os.environ.get('SECRET_KEY', 'UserManagementSystem273')
 
     @classmethod
     def register_user(cls, user: UserRegister, db):
         try:
             logger.info("User Registration Started")
             user_in_db = UserRepository.get_user_by_username(db, user.username)
+
             if user_in_db:
                 logger.info("Username already exists")
                 return GenericResponse.failed(message="Username already exists", results=user_in_db)
+
             hashed_password = cls.pwd_context.hash(user.password)
             new_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
             user_details = UserRepository.create_user(db, new_user)
+
             logger.info("User Registered Successfully")
             return GenericResponse.success(message="User Registered Successfully", results=user_details)
         except Exception as e:
@@ -45,12 +42,7 @@ class UserService:
                 logger.info("Invalid Credentials")
                 return GenericResponse.failed(message="Invalid Credentials", results=[])
 
-            payload = {
-                "sub": user.id,
-                "exp": datetime.now(timezone.utc) + timedelta(days=1)
-            }
-
-            token = jwt.encode(payload, cls.secret_key, algorithm="HS256")
+            token = create_access_token(user)
             logger.info("User Authenticated Successfully created")
             return Token(access_token=token, token_type="bearer")
         except Exception as e:
@@ -62,13 +54,7 @@ class UserService:
     def get_user_by_token(cls, token, db):
         try:
             logger.info("Get User By Token Started")
-            payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
-            user_id = payload.get("sub")
-            if not user_id:
-                logger.info("Invalid Token...")
-                return GenericResponse.failed(message="Invalid Token.", results=[])
-
-            user = UserRepository.get_user_by_id(db, user_id)
+            user, _ = get_current_user(token, db)
 
             if not user:
                 logger.info("User Not Found.")
@@ -86,13 +72,7 @@ class UserService:
     def update_user(cls, token, db, user_update: UserUpdate):
         try:
             logger.info("Update User Started")
-            payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
-            user_id = payload.get("sub")
-            if not user_id:
-                logger.info("Invalid Token.")
-                return GenericResponse.failed(message="Invalid Token..", results=[])
-
-            user = UserRepository.get_user_by_id(db, user_id)
+            user, _ = get_current_user(token, db)
 
             if not user:
                 logger.info("User Not Found")
@@ -115,17 +95,11 @@ class UserService:
     def delete_user(cls, token, db, user_delete: UserDelete):
         try:
             logger.info("Delete User Started")
-            payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
-            user_id = payload.get("sub")
-            if not user_id:
-                logger.info("Invalid Token")
-                return GenericResponse.failed(message="Invalid Token", results=[])
-
-            user = UserRepository.get_user_by_id(db, user_id)
+            user, user_id = get_current_user(token, db)
 
             if user.username != user_delete.username:
                 logger.info("Username Does not match with authenticated user.")
-                return GenericResponse.failed(message="Invalid Username", results=[])
+                return GenericResponse.failed(message="Username Does not match with authenticated user.", results=[])
 
             UserRepository.delete_user_by_id(db, user_id)
             logger.info("User Deleted Successfully")
