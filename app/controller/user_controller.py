@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from app.model.user_model import UserRegister, UserLogin, Token
+from app.model.user_model import UserRegister, UserLogin, Token, UserUpdate, UserDelete
 from app.config.database_config import db_dependency
 from app.service.user_service import UserService
 from fastapi.security import OAuth2PasswordBearer
@@ -40,3 +40,13 @@ def user_login(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends
 @router.get("/me/")
 def read_users_me(token: Annotated[str, Depends(oauth2_scheme)], db: db_dependency):
     return user_service.get_user_by_token(token, db)
+
+
+@router.put("/me/")
+def update_user(token: Annotated[str, Depends(oauth2_scheme)], db: db_dependency, user_update: UserUpdate):
+    return user_service.update_user(token, db, user_update)
+
+
+@router.delete("/me/")
+def delete_user(token: Annotated[str, Depends(oauth2_scheme)], db: db_dependency, user_delete: UserDelete):
+    return user_service.delete_user(token, db, user_delete)

@@ -1,7 +1,7 @@
 import os
 
 from passlib.context import CryptContext
-from app.model.user_model import UserRegister, UserLogin
+from app.model.user_model import UserRegister, UserLogin, UserUpdate, UserDelete
 from app.repository.user_repository import UserRepository
 from app.entity.user_entity import User
 from app.service.http_service import logger
@@ -65,8 +65,32 @@ class UserService:
             payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
             user_id = payload.get("sub")
             if not user_id:
-                logger.info("Invalid Token")
-                return GenericResponse.failed(message="Invalid Token", results=[])
+                logger.info("Invalid Token...")
+                return GenericResponse.failed(message="Invalid Token.", results=[])
+
+            user = UserRepository.get_user_by_id(db, user_id)
+
+            if not user:
+                logger.info("User Not Found.")
+                return GenericResponse.failed(message="User Not Found.", results=[])
+
+            logger.info("User Found")
+            return GenericResponse.success(message="User Found",
+                                           results={"username": user.username, "email": user.email})
+        except Exception as e:
+            logger.error(f"Error in Get User By Token: {str(e)}")
+            logger.info("Get User By Token Failed")
+            return GenericResponse.failed(message=f"Get User By Token Failed : {str(e)}", results=[])
+
+    @classmethod
+    def update_user(cls, token, db, user_update: UserUpdate):
+        try:
+            logger.info("Update User Started")
+            payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
+            user_id = payload.get("sub")
+            if not user_id:
+                logger.info("Invalid Token.")
+                return GenericResponse.failed(message="Invalid Token..", results=[])
 
             user = UserRepository.get_user_by_id(db, user_id)
 
@@ -74,9 +98,39 @@ class UserService:
                 logger.info("User Not Found")
                 return GenericResponse.failed(message="User Not Found", results=[])
 
-            logger.info("User Found")
-            return GenericResponse.success(message="User Found", results={"username": user.username, "email": user.email})
+            if user_update.password:
+                hashed_password = cls.pwd_context.hash(user_update.password)
+                user_update.password = hashed_password
+
+            updated_user = UserRepository.update_user(db, user, user_update)
+            logger.info("User Updated Successfully")
+            return GenericResponse.success(message="User Updated Successfully",
+                                           results={"username": updated_user.username, "email": updated_user.email})
         except Exception as e:
-            logger.error(f"Error in Get User By Token: {str(e)}")
-            logger.info("Get User By Token Failed")
-            return GenericResponse.failed(message=f"Get User By Token Failed : {str(e)}", results=[])
+            logger.error(f"Error in Update User: {str(e)}")
+            logger.info("Update User Failed")
+            return GenericResponse.failed(message=f"Update User Failed : {str(e)}", results=[])
+
+    @classmethod
+    def delete_user(cls, token, db, user_delete: UserDelete):
+        try:
+            logger.info("Delete User Started")
+            payload = jwt.decode(token, cls.secret_key, algorithms=["HS256"])
+            user_id = payload.get("sub")
+            if not user_id:
+                logger.info("Invalid Token")
+                return GenericResponse.failed(message="Invalid Token", results=[])
+
+            user = UserRepository.get_user_by_id(db, user_id)
+
+            if user.username != user_delete.username:
+                logger.info("Username Does not match with authenticated user.")
+                return GenericResponse.failed(message="Invalid Username", results=[])
+
+            UserRepository.delete_user_by_id(db, user_id)
+            logger.info("User Deleted Successfully")
+            return GenericResponse.success(message="User Deleted Successfully", results=[])
+        except Exception as e:
+            logger.error(f"Error in Delete User: {str(e)}")
+            logger.info("Delete User Failed")
+            return GenericResponse.failed(message=f"Delete User Failed : {str(e)}", results=[])

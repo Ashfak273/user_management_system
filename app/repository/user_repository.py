@@ -29,3 +29,28 @@ class UserRepository:
             return db.query(User).filter(User.id == user_id).first()
         except Exception as e:
             raise DbOperationException(str(e), e)
+
+    @staticmethod
+    def update_user(db: Session, user: User, user_update):
+        try:
+            if user_update.username:
+                user.username = user_update.username
+            if user_update.email:
+                user.email = user_update.email
+            if user_update.password:
+                user.hashed_password = user_update.password
+            db.commit()
+            return user
+        except Exception as e:
+            db.rollback()
+            raise DbOperationException(str(e), e)
+
+    @staticmethod
+    def delete_user_by_id(db: Session, user_id: int):
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            db.delete(user)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            raise DbOperationException(str(e), e)
