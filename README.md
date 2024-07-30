@@ -49,15 +49,6 @@ secret_key.env
 - `test`: Contains the test files
 - `main.py`: Contains the configuration to run the application
 
-
-## Installation
-1. Clone the repository
-2. Install the required packages using `pip install -r requirements.txt`
-3. Connect to the database by updating the `config.py` file
-4. Create database, table and columns refer `config.py and user_entity.py`
-5. Run the application using `uvicorn main:app --reload`
-
-
 ## Packages
 ```commandline
 pip install fastapi
@@ -69,6 +60,12 @@ pip install requests
 pip install "passlib[bcrypt]"
 pip install --upgrade bcrypt==4.0.1
 pip install pyJWT
-
 ```
+
+## Installation
+1. Clone the repository
+2. Install the required packages using `pip install -r requirements.txt`
+3. Connect to the database by updating the `config.py` file
+4. Create database, table and columns refer `config.py and user_entity.py`
+5. Run the application using `uvicorn main:app --reload`
 
