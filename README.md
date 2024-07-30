@@ -37,6 +37,7 @@ requirements.txt
 README.md
 secret_key.env
 ```
+
 ## Folder Structure Description
 - `config`: Contains the configuration files for the database
 - `controller`: Contains the controller/API files for the user
@@ -48,6 +49,22 @@ secret_key.env
 - `util`: Contains the utility files
 - `test`: Contains the test files
 - `main.py`: Contains the configuration to run the application
+
+## Databse Configuration
+change with your database configuration in `config.py` file
+```commandline
+MYSQL_USERNAME = 'root'
+MYSQL_PASSWORD = ''
+MYSQL_HOST = 'localhost'
+MYSQL_PORT = '3306'
+MYSQL_DB_NAME = 'user_management'
+```
+
+Table name : `user`
+
+columns_name : `id`, `username`, `email`, `hashed_password`, `created_at`
+
+secret_key.env : contains the secret key for JWT token
 
 ## Packages
 ```commandline
