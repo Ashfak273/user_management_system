@@ -1,11 +1,13 @@
+import re
+from datetime import datetime
+
 from passlib.context import CryptContext
 
-from app.model.user_model import UserRegister, UserLogin, UserUpdate, UserDelete
+from app.model.user_model import UserRegister, UserLogin, UserUpdate, UserDelete, AuthResponse
 from app.repository.user_repository import UserRepository
 from app.entity.user_entity import User
 from app.service.http_service import logger
 from app.model.generic_response import GenericResponse
-from app.model.user_model import Token
 from app.util.auth import create_access_token, get_current_user
 
 
@@ -20,10 +22,17 @@ class UserService:
 
             if user_in_db:
                 logger.info("Username already exists")
-                return GenericResponse.failed(message="Username already exists", results=user_in_db)
+                return GenericResponse.failed(message="Username already exists", results=[])
+
+            email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            if not re.fullmatch(email_regex, user.email):
+                logger.info("Invalid email format")
+                return GenericResponse.failed(message="Invalid email format", results=[])
 
             hashed_password = cls.pwd_context.hash(user.password)
-            new_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
+            created_at = datetime.now()
+            new_user = User(username=user.username, email=user.email,
+                            hashed_password=hashed_password, created_at=created_at)
             user_details = UserRepository.create_user(db, new_user)
 
             logger.info("User Registered Successfully")
@@ -40,15 +49,16 @@ class UserService:
             user = UserRepository.get_user_by_username(db, user_login.username)
             if not user or not cls.pwd_context.verify(user_login.password, user.hashed_password):
                 logger.info("Invalid Credentials")
-                return GenericResponse.failed(message="Invalid Credentials", results=[])
+                return AuthResponse(success=False, message="Invalid Credentials / User Not Found")
 
             token = create_access_token(user)
             logger.info("User Authenticated Successfully created")
-            return Token(access_token=token, token_type="bearer")
+            return AuthResponse(access_token=token, token_type="bearer", success=True,
+                                message="User Authenticated Successful", )
         except Exception as e:
             logger.error(f"Error in User Authentication: {str(e)}")
             logger.info("User Authentication Failed")
-            return GenericResponse.failed(message=f"User Authentication Failed : {str(e)}", results=[])
+            return AuthResponse(success=False, message=f"User Authentication Failed : {str(e)}")
 
     @classmethod
     def get_user_by_token(cls, token, db):
@@ -77,6 +87,10 @@ class UserService:
             if not user:
                 logger.info("User Not Found")
                 return GenericResponse.failed(message="User Not Found", results=[])
+
+            if user_update.username is None and user_update.email is None and user_update.password is None:
+                logger.info("Username, Email and Password are missing.")
+                return GenericResponse.failed(message="Username, Email and Password are missing.", results=[])
 
             if user_update.password:
                 hashed_password = cls.pwd_context.hash(user_update.password)
